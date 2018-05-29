@@ -17,16 +17,16 @@ node_t *createNode(int data) {
     return newNode;
 }
 
-void insertNode(node_t *node) {
-    node->next = HEAD;
-    HEAD = node;
+void insertNode(node_t **head, node_t *node) {
+    node->next = *head;
+    *head = node;
 }
 
-void appendNode(node_t *node) {
-    if (HEAD == NULL) {
-        HEAD = node;
+void appendNode(node_t **head, node_t *node) {
+    if (*head == NULL) {
+        *head = node;
     } else {
-        node_t *temp = HEAD;
+        node_t *temp = *head;
         while (temp->next != NULL) {
             temp = temp->next;
         }
@@ -34,36 +34,95 @@ void appendNode(node_t *node) {
     }
 }
 
-void deleteNode(node_t *node) {
-    if (HEAD == NULL) {
-        printf("Nothing to delete;;");
+void deleteNode(node_t **head, int nodeVal) {
+    if (*head == NULL) {
+        printf("Nothing to delete;;\n");
         return;
+    } else if ((*head)->data == nodeVal) {
+        if ( (*head)->next == NULL) {
+            printf("Only One node to remove. and found it\n");
+            free(*head);
+            *head = NULL;
+        } else {
+            printf("deleting first node\n");
+            node_t *temp = *head;
+            *head = (*head)->next;
+            free(temp);
+        }
+        return;
+    } else {
+        printf("search for the node %d\n", nodeVal);
+
+        node_t *current = *head;
+        node_t *prev = *head;
+
+        while (current != NULL && (current->data != nodeVal)) {
+            prev = current;
+            current = current->next;
+        }
+        if (current == NULL) {
+            printf("couldn't delete the node %d\n", nodeVal);
+            return;
+        } else {
+            prev->next = current->next;
+            free(current);
+            printf("deleted the node %d\n", nodeVal);
+        }
     }
+}
+
+void reverseList(node_t **head) {
+	ListNode *prev = NULL;
+	ListNode *current = *head;
+	ListNode *next = NULL;
+
+	while (current != NULL) {
+		next = current->next;
+		current->next = prev;
+		prev = next;
+		current = next;
+	}
+	*head = prev;
+}
+
+void deleteList(node_t **head) {
+    node_t *prev = *head;
+    while (*head != NULL) {
+        prev = *head;
+        *head = (*head)->next;
+        free(prev);
+    }
+    printf("Deleted all List\n");
 }
 
 void printList(node_t *head) {
     if (head == NULL) {
-        printf ("Hello Mister.. List is empty");
+        printf ("Hello Mister.. List is empty\n");
         return;
     }
-    printf("Hello Ajossi.. Here is the list \n");
     node_t *current = head;
     while (current != NULL) {
         printf (" %d", current->data);
         current = current->next;
     }
+    printf("\n");
 }
 
 int main()
 {
-    printf("Hello world!\n");
     for (int i = 10; i > 0; i --) {
-        insertNode(createNode(i));
+        insertNode(&HEAD, createNode(i));
     }
     for (int i = 90; i < 100; i++) {
-        appendNode(createNode(i));
+        appendNode(&HEAD, createNode(i));
     }
 
+    printList(HEAD);
+
+    deleteNode(&HEAD, 1);
+    printList(HEAD);
+
+    deleteList(&HEAD);
     printList(HEAD);
 
     return 0;
