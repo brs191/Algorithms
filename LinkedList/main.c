@@ -108,6 +108,16 @@ void printList(node_t *head) {
     printf("\n");
 }
 
+void findMiddleNode(node_t *head) {
+    node_t *slowPtr = head;
+    node_t *fastPtr = head;
+    while(fastPtr != NULL && fastPtr->next != NULL) {
+        fastPtr = fastPtr->next->next;
+        slowPtr = slowPtr->next;
+    }
+    printf("middle node is %d \n", slowPtr->data);
+}
+
 int main()
 {
     for (int i = 10; i > 0; i --) {
