@@ -72,17 +72,17 @@ void deleteNode(node_t **head, int nodeVal) {
 }
 
 void reverseList(node_t **head) {
-	ListNode *prev = NULL;
-	ListNode *current = *head;
-	ListNode *next = NULL;
+    node_t *prev = NULL;
+    node_t *curr = *head;
+    node_t *NEXT = NULL;
 
-	while (current != NULL) {
-		next = current->next;
-		current->next = prev;
-		prev = next;
-		current = next;
-	}
-	*head = prev;
+    while (curr != NULL) {
+        NEXT = curr->next;
+        curr->next = prev;
+        prev = curr;
+        curr = NEXT;
+    }
+    *head = prev;
 }
 
 void deleteList(node_t **head) {
