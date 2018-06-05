@@ -57,6 +57,27 @@ bool searchTrie(trieNode *root, const char *key) {
     return (pCrawl != NULL && pCrawl->isEndOfWord);
 }
 
+bool haveChildren(trieNode *node) {
+    for (int i = 0; i < ALPHABETS; i++) {
+        if (node->children[i] != NULL) {
+            return true;
+        }
+    }
+    return false;
+}
+
+//http://www.techiedelight.com/trie-implementation-insert-search-delete/
+void deleteTrie(trieNode *curr, char *str) {
+
+    if (*curr == NULL) {
+        return 0;
+    }
+
+    if (*str) {
+        if(*curr != NULL && (*curr)->)
+    }
+}
+
 int main()
 {
     char keys[][8] = {"the", "a", "there", "answer", "any", "by", "bye", "their"};
