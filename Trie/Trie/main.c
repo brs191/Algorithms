@@ -102,9 +102,54 @@ void deleteTrie(trieNode *root, char *key) {
     printf("deleteTrie %s resul: %d\n", key, resul);
 }
 
+void display(trieNode *node, char *str, int lvl, char *query) {
+    if(node->isEndOfWord) {
+        str[lvl] = '\0';
+        printf("%s%s\n", query, str);
+    }
+    for(int i = 0; i < ALPHABETS; i++) {
+        if(node->children[i]) {
+            str[lvl] = i + 'a';
+            display(node->children[i], str, lvl+1, query);
+        }
+    }
+}
+
+void printRegEx(trieNode *root, char *query) {
+    trieNode *pCrawl = root;
+
+    int len = strlen(query);
+    for(int lvl = 0; lvl < len; lvl++) {
+        int idx = CHAR_TO_INDEX(query[lvl]);
+        if(pCrawl->children[idx] == NULL) {
+            return;
+        }
+        pCrawl = pCrawl->children[idx];
+    }
+    bool isWord = false;
+    if(pCrawl->isEndOfWord) {
+        printf("Prefix is the end of the word\n");
+        isWord = true;
+    }
+    bool isLast = false;
+    if(haveChildren(pCrawl) == false) {
+        printf("Prefix has no subtree\n");
+        isLast = true;
+    }
+    if (isWord && isLast) {
+        printf("Prefix query has no other entries \n");
+        return;
+    }
+    if (isLast == false) {
+        int level = 0;
+        char prefix[1000];
+        display(pCrawl, prefix, level, query);
+    }
+}
+
 int main()
 {
-    char keys[][8] = {"the", "a", "there", "answer", "any", "by", "bye", "their", "aws"};
+    char keys[][8] = {"the", "a", "there", "answer", "any", "by", "bye", "their", "anyways"};
     char output[][32] = {"Not present in trie", "Present in trie"};
 
     root = newNode();
@@ -122,11 +167,11 @@ int main()
     printf ("seacrch: any %s\n", output[findRes]);
 
     deleteTrie(root, "aws");
-    deleteTrie(root, "any");
-    deleteTrie(root, "answer");
-    deleteTrie(root, "a");
 
     findRes = searchTrie(root, "aws");
     printf ("seacrch: aws %s\n", output[findRes]);
+
+    printf("regExpressions for any::::: \n");
+    printRegEx(root, "any");
     return 0;
 }
