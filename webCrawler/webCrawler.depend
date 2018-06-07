@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1528372218 source:c:\dropbox\github\algorithms-master\webcrawler\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
