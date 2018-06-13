@@ -50,7 +50,10 @@ bool searchTrie(trieNode *root, const char *key) {
     int len = strlen(key);
     trieNode *pCrawl = root;
     int idx = 0;
-
+    if (root == NULL) {
+        printf("TRIE Is empty \n");
+        return false;
+    }
     for (int ch = 0; ch < len; ch++) {
         idx = CHAR_TO_INDEX(key[ch]);
         if (pCrawl->children[idx] == NULL) {
@@ -102,6 +105,24 @@ void deleteTrie(trieNode *root, char *key) {
     printf("deleteTrie %s resul: %d\n", key, resul);
 }
 
+void freeTrieChildren(trieNode *node) {
+    if(node->isEndOfWord == false) {
+        for(int i = 0; i < ALPHABETS; i++) {
+            if(node->children[i] != NULL) {
+                freeTrieChildren(node->children[i]);
+            }
+        }
+    }
+    if(node != NULL) {
+        FREE(node);
+    }
+}
+
+void freeTrie(trieNode *root) {
+    freeTrieChildren(root);
+    FREE(root);
+}
+
 void display(trieNode *node, char *str, int lvl, char *query) {
     if(node->isEndOfWord) {
         str[lvl] = '\0';
@@ -113,6 +134,19 @@ void display(trieNode *node, char *str, int lvl, char *query) {
             display(node->children[i], str, lvl+1, query);
         }
     }
+}
+
+int wordCount(trieNode *root) {
+    int result = 0;
+    if (root->isEndOfWord) {
+        result++;
+    }
+    for(int i = 0; i < ALPHABETS; i++) {
+        if(root->children[i]) {
+            result += wordCount(root->children[i]);
+        }
+    }
+    return result;
 }
 
 void printRegEx(trieNode *root, char *query) {
@@ -144,12 +178,15 @@ void printRegEx(trieNode *root, char *query) {
         int level = 0;
         char prefix[1000];
         display(pCrawl, prefix, level, query);
+        printf("Number of Words with regex: %s is %d\n", query, wordCount(pCrawl));
     }
 }
 
 int main()
 {
-    char keys[][8] = {"the", "a", "there", "answer", "any", "by", "bye", "their", "anyways"};
+    char keys[][17] = {"the", "a", "there", "answer", "any", "by", "bye", "their",
+                      "hello", "dog", "hell", "cat", "hel", "help", "helps", "helping", "anyways"};
+
     char output[][32] = {"Not present in trie", "Present in trie"};
 
     root = newNode();
@@ -160,18 +197,17 @@ int main()
     findRes = searchTrie(root, "answer");
     printf ("seacrch: answer %s\n", output[findRes]);
 
-    findRes = searchTrie(root, "aws");
-    printf ("seacrch: aws %s\n", output[findRes]);
-
-    findRes = searchTrie(root, "any");
-    printf ("seacrch: any %s\n", output[findRes]);
-
     deleteTrie(root, "aws");
 
     findRes = searchTrie(root, "aws");
     printf ("seacrch: aws %s\n", output[findRes]);
 
-    printf("regExpressions for any::::: \n");
-    printRegEx(root, "any");
+    printf("regExpressions for hel::::: \n");
+    printRegEx(root, "hel");
+
+    freeTrie(root);
+    findRes = searchTrie(root, "answer");
+    printf ("seacrch: answer %s\n", output[findRes]);
+
     return 0;
 }
