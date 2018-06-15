@@ -8,6 +8,32 @@
 using namespace std;
 #define MAX_SIZE 26
 
+#define printf //
+//#define cout //
+/* Util APIs */
+
+int strlen_c(const char *s) {
+    int i;
+    for (i = 0; s[i] != '\0'; i++) ;
+    return i;
+}
+
+void strcpy_c(char *to, const char *from) {
+    while (*from != '\0') {
+        *to = *from;
+        to++; from++;
+    }
+    *(to++) = '\0';
+}
+
+int strcmp_c(const char *s1, const char *s2) {
+    while(*s1 && (*s1==*s2))
+        s1++,s2++;
+    return *(const unsigned char*)s1-*(const unsigned char*)s2;
+}
+
+/* Util APIs */
+
 /* QUEUE APIS */
 typedef struct _qnode {
     char key[27];
@@ -17,48 +43,47 @@ typedef struct _qnode {
 typedef struct _queue {
     QNode *front;
     QNode *rear;
-    int cnt;
+    int qCount;
 } Queue;
 
 QNode *newNode(char *key) {
-    QNode *node = (QNode *)malloc(sizeof(QNode));
+    QNode *node = (QNode *)new QNode;
 
-    strcpy(node->key, key);
+    strcpy_c(node->key, key);
     node->next = NULL;
     return node;
 }
 
 Queue *createQueue() {
-    Queue *node = (Queue *)malloc(sizeof(Queue));
+    Queue *node = (Queue *)new Queue;
     node->front = NULL;
     node->rear = NULL;
-    node->cnt = 0;
+    node->qCount = 0;
     return node;
 }
 
 void enQueue(Queue *q, char *key) {
 
     QNode *node = newNode(key);
-
+    q->qCount++;
     if (q->rear == NULL) {
         q->rear = q->front = node;
         return;
     }
     q->rear->next = node;
     q->rear = node;
-    q->cnt++;
 }
 
 QNode *deQueue(Queue *q) {
     if (q->front == NULL) {
         return NULL;
     }
+    q->qCount--;
     QNode *temp = q->front;
     q->front = q->front->next;
     if(q->front == NULL) {
         q->rear = NULL;
     }
-    q->cnt--;
     return temp;
 }
 
@@ -69,12 +94,12 @@ bool isEmpty(Queue *q) {
 
 void printQueue(Queue *q) {
     if (q == NULL || q->front == NULL)  {
-        cout << "Queue is empty \n";
         return;
     }
     QNode *temp = q->front;
+    //cout << "Q:: ";
     while(temp != NULL) {
-        cout << temp->key << endl;
+        cout << temp->key << " ";
         temp = temp->next;
     }
     cout << endl;
@@ -82,13 +107,11 @@ void printQueue(Queue *q) {
 
 QNode *findInQueue(Queue *q, char *key) {
     if (q == NULL || q->front == NULL)  {
-        cout << "Queue is empty \n";
         return NULL;
     }
     QNode *temp = q->front;
     while(temp != NULL) {
-        if(strcmp(key, temp->key)) {
-            cout << "Found Key: " << key << endl;
+        if(strcmp_c(key, temp->key) == 0) {
             return temp;
         }
         temp = temp->next;
@@ -96,18 +119,6 @@ QNode *findInQueue(Queue *q, char *key) {
     return NULL;
 }
 
-void deleteQueue(Queue *q) { /*
-    if (q == NULL || q->front == NULL)  {
-        cout << "Queue is empty \n";
-        return;
-    }
-    QNode *temp = q->front;
-    while(temp != NULL) {
-        FREE(temp);
-        temp = temp->next;
-    }
-    cout << endl; */
-}
 /* QUEUE APIS */
 
 /* Trie APIs */
@@ -125,33 +136,33 @@ typedef struct _trieNode {
     struct _trieNode *children[ALPHABETS];
     int isEndOfWord;
     Queue *hyperLink;
-    int cnt;
+    int suffixCnt;
 } trieNode;
 trieNode *root = NULL;
 
 trieNode *newTrie() {
-    trieNode *node = (trieNode *)malloc(sizeof(trieNode));
+    trieNode *node = (trieNode *)new trieNode;
     if(node == NULL) {
-        printf("Memory alloc failed \n");
+        //printf("Memory alloc failed \n");
         return NULL;
     }
     for(int i = 0; i < ALPHABETS; i++) {
         node->children[i] = NULL;
     }
     node->isEndOfWord = false;
-    node->hyperLink = (Queue *)malloc(sizeof(Queue));
-    node->cnt = 0;
+    node->hyperLink = createQueue();
+    node->suffixCnt = 0;
     return node;
 }
 
 void insertTrie(trieNode *root, const char *key) {
     trieNode *pCrawl = root;
-    int len = strlen(key);
+    int len = strlen_c(key);
     int idx = 0;
     for (int ch = 0; ch < len; ch++) {
         idx = CHAR_TO_INDEX(key[ch]);
+        pCrawl->suffixCnt++;
         if(pCrawl->children[idx] == NULL) {
-            pCrawl->cnt++;
             pCrawl->children[idx] = newTrie();
         }
         pCrawl = pCrawl->children[idx];
@@ -160,17 +171,16 @@ void insertTrie(trieNode *root, const char *key) {
 }
 
 trieNode *searchTrie(trieNode *root, const char *key) {
-    int len = strlen(key);
+    int len = strlen_c(key);
     trieNode *pCrawl = root;
     int idx = 0;
     if (root == NULL) {
-        printf("TRIE Is empty \n");
-        return false;
+        return NULL;
     }
     for (int ch = 0; ch < len; ch++) {
         idx = CHAR_TO_INDEX(key[ch]);
         if (pCrawl->children[idx] == NULL) {
-            return false;
+            return NULL;
         }
         pCrawl = pCrawl->children[idx];
     }
@@ -180,69 +190,24 @@ trieNode *searchTrie(trieNode *root, const char *key) {
     return NULL;
 }
 
-bool haveChildren(trieNode *node) {
+void printTrie(trieNode *node, char *str, int level) {
+    if(node->isEndOfWord) {
+        str[level] = '\0';
+        cout << str << " ";
+        printQueue(node->hyperLink);
+    }
     for (int i = 0; i < ALPHABETS; i++) {
-        if (node->children[i] != NULL) {
-            return true;
+        if(node->children[i]) {
+            str[level] = i + 'a';
+            printTrie(node->children[i], str, level+1);
         }
     }
-    return false;
-}
-
-bool deleteHelper(trieNode *node, char *key, int lvl, int len) {
-    if (node) {
-        if (lvl == len) {
-            if (node->isEndOfWord) {
-                node->isEndOfWord = 0;
-                if (haveChildren(node) == false) {
-                    return true;
-                }
-                return false;
-            }
-        } else { // go recursive
-            int idx = CHAR_TO_INDEX(key[lvl]);
-            if(deleteHelper(node->children[idx], key, lvl+1, len)) {
-                printf("deleting char %c \n", idx + 'a');
-                FREE(node->children[idx]);
-                return ((node->isEndOfWord == false) && (haveChildren(node) == false));
-            }
-        }
-    }
-    return false;
-}
-
-//http://www.techiedelight.com/trie-implementation-insert-search-delete/
-void deleteTrie(trieNode *root, char *key) {
-    int len = strlen(key);
-    bool resul = false;
-    if (len > 0) {
-        resul = deleteHelper(root, key, 0, len);
-    }
-    printf("deleteTrie %s resul: %d\n", key, resul);
-}
-
-void freeTrieChildren(trieNode *node) {
-    if(node->isEndOfWord == false) {
-        for(int i = 0; i < ALPHABETS; i++) {
-            if(node->children[i] != NULL) {
-                freeTrieChildren(node->children[i]);
-            }
-        }
-    }
-    if(node != NULL) {
-        FREE(node);
-    }
-}
-
-void freeTrie(trieNode *root) {
-    freeTrieChildren(root);
-    FREE(root);
 }
 
 void display(trieNode *node, char *str, int lvl, char *query) {
     if(node->isEndOfWord) {
         str[lvl] = '\0';
-        printf("%s%s\n", query, str);
+        //printf("%s%s\n", query, str);
     }
     for(int i = 0; i < ALPHABETS; i++) {
         if(node->children[i]) {
@@ -252,51 +217,6 @@ void display(trieNode *node, char *str, int lvl, char *query) {
     }
 }
 
-int wordCount(trieNode *root) {
-    int result = 0;
-    if (root->isEndOfWord) {
-        result++;
-    }
-    for(int i = 0; i < ALPHABETS; i++) {
-        if(root->children[i]) {
-            result += wordCount(root->children[i]);
-        }
-    }
-    return result;
-}
-
-void printRegEx(trieNode *root, char *query) {
-    trieNode *pCrawl = root;
-
-    int len = strlen(query);
-    for(int lvl = 0; lvl < len; lvl++) {
-        int idx = CHAR_TO_INDEX(query[lvl]);
-        if(pCrawl->children[idx] == NULL) {
-            return;
-        }
-        pCrawl = pCrawl->children[idx];
-    }
-    bool isWord = false;
-    if(pCrawl->isEndOfWord) {
-        printf("Prefix is the end of the word\n");
-        isWord = true;
-    }
-    bool isLast = false;
-    if(haveChildren(pCrawl) == false) {
-        printf("Prefix has no subtree\n");
-        isLast = true;
-    }
-    if (isWord && isLast) {
-        printf("Prefix query has no other entries \n");
-        return;
-    }
-    if (isLast == false) {
-        int level = 0;
-        char prefix[1000];
-        display(pCrawl, prefix, level, query);
-        printf("Number of Words with regex: %s is %d\n", query, wordCount(pCrawl));
-    }
-}
 /* Trie APIs */
 
 void Init();
@@ -316,13 +236,6 @@ void Init() { // called once before every test case
     pageTrie = newTrie();
 }
 
-/*
-addUrl(Url) {
-	if NOT in search in pageTrie
-				add in pageTrie
-				add in pageQ
-}
-*/
 // add this Url to page queue if not already present in the page or not crawled yet
 void addUrl(char str[MAX_SIZE]) {
     if (searchTrie(pageTrie, str) == NULL) {
@@ -331,12 +244,6 @@ void addUrl(char str[MAX_SIZE]) {
     }
 }
 
-/*
-addHyperLink(parent, child) {
-	find parent in pageTrie
-		add child in pageTrie node Queue
-}
-*/
 // add child hyperlink to parent page
 void addHyperLink(char parent[MAX_SIZE], char child[MAX_SIZE]) {
     trieNode *temp = searchTrie(pageTrie, parent);
@@ -345,53 +252,33 @@ void addHyperLink(char parent[MAX_SIZE], char child[MAX_SIZE]) {
     }
 }
 
-/*
-crawl() {
-	deQueue pageQ
-		find URL in pageTrie
-			find hyperLInk this TrieNode
-				loop hyperlink
-					enQueue in pageQ ->> if not Exist // Don't do this
-					search hyperlink in pageTrie ->> if not Exist add in pageQ...
-
-	delete URL from pageTrie.
-	Insert URL in CrawledTrie.
-}
-*/
 // pop the front most page from page queue and crawl the page
 void crawl() {
     QNode *tQNode = deQueue(pageQ);
-    printf("Crawl Url: %s", tQNode->key);
 
     trieNode *tPageTrie = searchTrie(pageTrie, tQNode->key);
     QNode *temp = tPageTrie->hyperLink->front;
     while(temp != NULL) {
-        if (findInQueue(pageQ, temp->key) != NULL)  {
+        if (searchTrie(pageTrie, temp->key) == NULL)  {
             enQueue(pageQ, temp->key);
+            insertTrie(pageTrie, temp->key);
         }
         temp = temp->next;
     }
-    deleteTrie(pageTrie, tQNode->key);
+    //deleteTrie(pageTrie, tQNode->key);
     insertTrie(pageCrawled, tQNode->key);
 }
 
 // returns the size of the page queue
 int queueSize() {
-
-    return pageQ->cnt;
+    return pageQ->qCount;
 }
 
-/*
-query(url) {
-	search URL in crawledTree
-		//trieNode-> count return;
-}
-*/
 // returns the number of pages in crawled queue which has str as prefix
 int query(char query[MAX_SIZE]) {
     trieNode *pCrawl = pageCrawled;
 
-    int len = strlen(url);
+    int len = strlen_c(query);
     for(int lvl = 0; lvl < len; lvl++) {
         int idx = CHAR_TO_INDEX(query[lvl]);
         if(pCrawl->children[idx] == NULL) {
@@ -399,26 +286,15 @@ int query(char query[MAX_SIZE]) {
         }
         pCrawl = pCrawl->children[idx];
     }
-    return pCrawl->cnt;
+    return pCrawl->suffixCnt;
 }
 
 int main()
 {
-    Init();
-    addUrl("google");
-    addUrl("facebook");
-
-    addHyperLink("google", "twitter");
-    crawl();
-    cout << "QueueSize: " << queueSize() << endl;
-    query("go");
-
-    cout << "-------- THE END --------" << endl;
-
-    /*
-	int t, T;
+ 	int t, T;
 	ios_base::sync_with_stdio(0);
 	cin.tie(0);
+	freopen("input.txt", "r", stdin);
 	cin >> T;
 	for (t = 1; t <= T; t++)
 	{
@@ -428,13 +304,12 @@ int main()
 		int ansPoints, points = 0;
 		cin >> ansPoints;
 
-
 		for (int i = 0; i < cmds; i++)
 		{
 			int type;
 			cin >> type;
 			int ansLen, ansPrefixes, len, prefixes;
-
+            char trieName[27];
 			switch (type)
 			{
 			case 1:
@@ -464,12 +339,8 @@ int main()
 				break;
 			}
 		}
-
-
-		cout << "#" << t << " " << points / ansPoints << '\n';
-
+		cout << "#" << t << " " << points / ansPoints << endl;
 	}
 
-*/
 	return 0;
 }
