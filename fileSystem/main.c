@@ -3,209 +3,176 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
-
-#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
-
 #define ALPHABETS 26
+#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
+#define ARRAY_SIZE(c) (sizeof(c)/sizeof(c[0]))
+#define FREE(c) \
+    free(c); \
+    c = NULL;
 
-#define FREE(p) \
-    free(p); \
-    p = NULL;
+int strlen_c(char *str) {
+    int len = 0;
+    while(*str != '\0') {
+        str++;
+        len++;
+    }
+    return len;
+}
+
+int strcmp_c(const char *s1, const char *s2) {
+    while(*s1 && (*s1 == *s2)) {
+        s1++; s2++;
+    }
+    return *(const unsigned char *)s1 - *(const unsigned char *)s2;
+}
+
+void strcpy_c(char *dest, const char *src) {
+    while(*src != '\0') {
+        *dest = *src;
+        dest++; src++;
+    }
+    *(dest++) = '\0';
+}
+
+char *strsplit_c(char *str, const char *delim) {
+    static char *_buffer;
+    if(str != NULL) _buffer = str;
+    if(_buffer[0] == '\0') return NULL;
+
+    char *ret = _buffer, *b;
+    for(b = _buffer; *b != '\0'; b++) {
+        for (const char *d = delim; *d != '\0'; d++) {
+            if (*b == *d) { // found a delimiter;
+                *b = '\0';
+                _buffer = b+1;
+                return ret;
+            }
+        }
+    }
+    if(*b == '\0') {
+        _buffer = b;
+    }
+    return ret;
+}
 
 typedef struct _trieNode {
+    struct _trieNode *children[ALPHABETS];
     struct _trieNode *sibling[ALPHABETS];
-    int isEndOfWord;
-    bool hassibling;
+    int eow;
+    int suffixCnt;
 } trieNode;
-trieNode *home = NULL;
 
-trieNode *newNode() {
-    trieNode *node = malloc(sizeof(trieNode));
-    if(node == NULL) {
-        printf("Memory alloc failed \n");
-        return NULL;
-    }
-    for(int i = 0; i < ALPHABETS; i++) {
-        node->sibling[i] = NULL;
-    }
-    node->isEndOfWord = false;
-    return node;
-}
+trieNode *root = NULL;
 
-void insertTrie(trieNode *root, const char *key) {
-    trieNode *pCrawl = root;
-    int len = strlen(key);
-    int idx = 0;
-    for (int ch = 0; ch < len; ch++) {
-        idx = CHAR_TO_INDEX(key[ch]);
-        if(pCrawl->sibling[idx] == NULL) {
-            pCrawl->sibling[idx] = newNode();
+trieNode *newTrieNode() {
+    trieNode *node = (trieNode *) malloc(sizeof(trieNode));
+    if(node != NULL) {
+        for(int i = 0; i < ALPHABETS; i++) {
+            node->children[i] = NULL;
         }
-        pCrawl = pCrawl->sibling[idx];
+        node->eow = 0;
+        return node;
     }
-    pCrawl->isEndOfWord = true;
+    return NULL;
 }
 
-bool searchTrie(trieNode *root, const char *key) {
-    int len = strlen(key);
-    trieNode *pCrawl = root;
-    int idx = 0;
-    if (root == NULL) {
-        printf("TRIE Is empty \n");
-        return false;
-    }
-    for (int ch = 0; ch < len; ch++) {
-        idx = CHAR_TO_INDEX(key[ch]);
-        if (pCrawl->sibling[idx] == NULL) {
-            return false;
+void insertWord(trieNode *node, char *word) {
+    trieNode *pCrawl = node;
+    int len = strlen_c(word);
+    for(int i = 0; i < len; i++) {
+        int idx = CHAR_TO_INDEX(word[i]);
+        pCrawl->suffixCnt++;
+        if(!pCrawl->children[idx]) {
+            pCrawl->children[idx] = newTrieNode();
         }
-        pCrawl = pCrawl->sibling[idx];
+        pCrawl = pCrawl->children[idx];
     }
-    return (pCrawl != NULL && pCrawl->isEndOfWord);
+    pCrawl->eow = 1;
 }
 
-bool havesibling(trieNode *node) {
+trieNode *searchWord(trieNode *node, char *word) {
+    trieNode *pCrawl = node;
+    int len = strlen_c(word);
+    for (int i = 0; i < len; i++) {
+        int idx = CHAR_TO_INDEX(word[i]);
+        if (pCrawl->children[idx] == NULL) {
+            return NULL;
+        }
+        pCrawl = pCrawl->children[idx];
+    }
+    if (pCrawl != NULL && pCrawl->eow) {
+        return pCrawl;
+    }
+    return NULL;
+}
+
+bool hasChildren(trieNode *node) {
     for (int i = 0; i < ALPHABETS; i++) {
-        if (node->sibling[i] != NULL) {
+        if (node->children[i] != NULL) {
             return true;
         }
     }
     return false;
 }
 
-bool deleteHelper(trieNode *node, char *key, int lvl, int len) {
-    if (node) {
-        if (lvl == len) {
-            if (node->isEndOfWord) {
-                node->isEndOfWord = 0;
-                if (havesibling(node) == false) {
+bool deleteWordHelper(trieNode *node, char *word, int wlen, int lvl) {
+    if(node != NULL) {
+        if(lvl == wlen) {
+            if (node->eow) {
+                node->eow = 0;
+                if (!hasChildren(node)) { // if empty node to be deleted;
                     return true;
                 }
                 return false;
             }
-        } else { // go recursive
-            int idx = CHAR_TO_INDEX(key[lvl]);
-            if(deleteHelper(node->sibling[idx], key, lvl+1, len)) {
-                //printf("deleting char %c \n", idx + 'a');
-                FREE(node->sibling[idx]);
-                return ((node->isEndOfWord == false) && (havesibling(node) == false));
+        } else {
+            int idx = CHAR_TO_INDEX(word[lvl]);
+            if(deleteWordHelper(node->children[idx], word, wlen, lvl+1)) {
+                FREE(node->children[idx]);
+                node->suffixCnt--;
+                return (node->eow == 0 && !hasChildren(node));
             }
         }
     }
     return false;
 }
 
-//http://www.techiedelight.com/trie-implementation-insert-search-delete/
-void deleteTrie(trieNode *root, char *key) {
-    int len = strlen(key);
-    bool resul = false;
+void deleteWord(trieNode *node, char *word) {
+    int len = strlen_c(word);
     if (len > 0) {
-        resul = deleteHelper(root, key, 0, len);
-    }
-    printf("deleteTrie %s resul: %d\n", key, resul);
-}
-
-void freeTriesibling(trieNode *node) {
-    if(node->isEndOfWord == false) {
-        for(int i = 0; i < ALPHABETS; i++) {
-            if(node->sibling[i] != NULL) {
-                freeTriesibling(node->sibling[i]);
-            }
-        }
-    }
-    if(node != NULL) {
-        FREE(node);
+        deleteWordHelper(node, word, len, 0);
     }
 }
 
-void freeTrie(trieNode *root) {
-    freeTriesibling(root);
-}
-
-void display(trieNode *node, char *str, int lvl, char *query) {
-    if(node->isEndOfWord) {
-        str[lvl] = '\0';
-        printf("%s%s\n", query, str);
-    }
-    for(int i = 0; i < ALPHABETS; i++) {
-        if(node->sibling[i]) {
-            str[lvl] = i + 'a';
-            display(node->sibling[i], str, lvl+1, query);
-        }
-    }
-}
-
-int wordCount(trieNode *root) {
-    int result = 0;
-    if (root->isEndOfWord) {
-        result++;
-    }
-    for(int i = 0; i < ALPHABETS; i++) {
-        if(root->sibling[i]) {
-            result += wordCount(root->sibling[i]);
-        }
-    }
-    return result;
-}
-
-void printRegEx(trieNode *root, char *query) {
-    trieNode *pCrawl = root;
-
-    int len = strlen(query);
-    for(int lvl = 0; lvl < len; lvl++) {
-        int idx = CHAR_TO_INDEX(query[lvl]);
-        if(pCrawl->sibling[idx] == NULL) {
+void mkdir(char *path, char *name) {
+    char str[100];
+    strcpy_c(str, path);
+    char *folderName = strsplit_c(str,"/");
+    trieNode *pCrawl = NULL;
+    while (folderName != NULL)
+    {
+        pCrawl = searchWord(root, folderName);
+        if (pCrawl == NULL) {
+            printf("%s not found\n", folderName);
             return;
+        } else {
+            printf("%s found\n", folderName);
         }
-        pCrawl = pCrawl->sibling[idx];
+        folderName = strsplit_c(NULL, "/");
     }
-    bool isWord = false;
-    if(pCrawl->isEndOfWord) {
-        printf("Prefix is the end of the word\n");
-        isWord = true;
-    }
-    bool isLast = false;
-    if(havesibling(pCrawl) == false) {
-        printf("Prefix has no subtree\n");
-        isLast = true;
-    }
-    if (isWord && isLast) {
-        printf("Prefix query has no other entries \n");
-        return;
-    }
-    if (isLast == false) {
-        int level = 0;
-        char prefix[1000];
-        display(pCrawl, prefix, level, query);
-        printf("Number of Words with regex: %s is %d\n", query, wordCount(pCrawl));
-    }
-}
-
-void initFileSystem() {
-    if (home != NULL) {
-        freeTrie(home);
-    }
-    home = newNode();
-}
-
-void mkdir(char *folderName, char *fileName) {
-    insertTrie(home, fileName);
+    printf("TheEnd....\n");
 }
 
 int main()
 {
-    char folderNames[][17] = {"one", "two", "three", "four", "five"};
+    char keys[][17] = {"the", "a", "there", "answer", "any", "by", "bye", "their",
+                      "hello", "dog", "hell", "cat", "hel", "help", "helps", "helping", "anyways"};
 
-    char output[][32] = {"Not present in trie", "Present in trie"};
-
-    initFileSystem();
-    for (int i = 0; i < ARRAY_SIZE(folderNames); i++) {
-        mkdir(home, folderNames[i]);
+    root = newTrieNode();
+    for (int i = 0; i < ARRAY_SIZE(keys); i++) {
+        insertWord(root, keys[i]);
     }
-    printf ("search: two %s\n", output[searchTrie(home, "two")]);
-
-    getPwdNode("one");
+    mkdir("hello/dog/shekar", "myFolder");
 
     return 0;
 }
