@@ -45,6 +45,24 @@ void insertTrie(trieNode *root, const char *key) {
     }
     pCrawl->isEndOfWord = true;
 }
+/*
+void insertRecurHelper(trieNode *node, char *word, int lvl) {
+    if(lvl == strlen_c(word)) {
+        node->eow = 1;
+        return;
+    }
+    int idx = CHAR_TO_INDEX(word[lvl]);
+    node->suffixCnt++;
+    if(node->children[idx] == NULL) {
+        node->children[idx] = newTrieNode();
+    }
+    node = node->children[idx];
+    insertRecurHelper(node, word, lvl+1);
+}
+
+void insertRecursive(trieNode *node, char *word) {
+    insertRecurHelper(node, word, 0);
+}*/
 
 bool searchTrie(trieNode *root, const char *key) {
     int len = strlen(key);
