@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdbool.h>
 
 #define N 3 //49
 #define M 3 //15
@@ -81,10 +81,40 @@ int isMatch(pieceInfo p1, pieceInfo p2, int dir) {
     return 1;
 }
 
+int arr[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38 , 39, 40, 41, 42, 43, 44, 46, 46, 47, 48, 49, 50 , 51, 52, 53, 54 };
+
+void swap(int i, int j) {
+	int tmp = arr[i];
+	arr[i] = arr[j];
+	arr[j] = tmp;
+}
+
+void perm(int offset, int totalElements) {
+
+	if (offset == totalElements) { // teminate condition
+            /*
+		for (int i = 0; i < totalElements; i++) {
+			printf("%d ", arr[i]);
+		}
+		printf("\n"); */
+		return;
+	}
+	else {
+		for (int i = offset; i < totalElements; i++) {
+			swap(i, offset);
+			perm(offset + 1, totalElements);
+			swap(i, offset);
+		}
+	}
+
+}
 
 int main()
 {
     // step 1; create all the neighbours.
-
+	int len = sizeof(arr) / sizeof(arr[0]);
+	perm(0, len);
+	printf("Hello World \n");
+	getchar();
     return 0;
 }
