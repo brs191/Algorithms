@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1529925980 source:/home/rajalinux2/Certi/JigSaw/main.c
+	<stdio.h>
+	<stdlib.h>
+
