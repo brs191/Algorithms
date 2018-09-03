@@ -18,19 +18,18 @@ int heapPush(int value)
 		return 0;
 	}
 
-	heap[heapSize] = value;
+	heap[heapSize] = value; // insert at last position;
 
 	int current = heapSize;
-	while (current > 0 && heap[current] < heap[(current - 1) / 2]) 
+	while (current > 0 && heap[current] < heap[(current - 1) / 2]) // if child is less than parent; swap;
 	{
-        // if()
 		int temp = heap[(current - 1) / 2];
 		heap[(current - 1) / 2] = heap[current];
 		heap[current] = temp;
 		current = (current - 1) / 2;
 	}
 
-	heapSize = heapSize + 1;
+	heapSize = heapSize + 1; // heapSize is index of array;
 
 	return 1;
 }
@@ -48,32 +47,32 @@ int heapPop(int *value)
 	heap[0] = heap[heapSize];
 
 	int current = 0;
-	while (current * 2 + 1 < heapSize) //until the end of the array..
+	while (current * 2 + 1 < heapSize) //until the last left node
 	{
 		int child;
-		if (current * 2 + 2 == heapSize) //if right child is the last array;
+		if (current * 2 + 2 == heapSize) //last node has no right child
 		{
-			child = current * 2 + 1;
+			child = current * 2 + 1; //idx is left child
 		}
 		else
 		{
-			if(heap[current * 2 + 1] < heap[current * 2 + 2]) {
-				child = current * 2 + 1; 
+			if(heap[current * 2 + 1] < heap[current * 2 + 2]) { // left child < right child
+				child = current * 2 + 1;  // idx is left child
 			} else {
-				child = current * 2 + 2; 
+				child = current * 2 + 2;  // idx is right child
 			}
 		}
 
-		if (heap[current] < heap[child])
+		if (heap[current] < heap[child]) // if parent is less than child; position found.
 		{
 			break;
 		}
 
-		int temp = heap[current];
-		heap[current] = heap[child];
+		int temp = heap[current]; // swap parent and child
+		heap[current] = heap[child]; 
 		heap[child] = temp;
 
-		current = child;
+		current = child; // current is child; go one level down;
 	}
 	return 1;
 }
@@ -81,8 +80,8 @@ int heapPop(int *value)
 int main(int argc, char* argv[])
 {
 	int T, N;
-    freopen("input.txt", "r", stdin);
-    setbuf(stdout, NULL);
+        freopen("input.txt", "r", stdin);
+        setbuf(stdout, NULL);
 	scanf("%d", &T);
 
 	for (int test_case = 1; test_case <= T; test_case++)
