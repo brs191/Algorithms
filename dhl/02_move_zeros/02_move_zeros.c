@@ -18,7 +18,7 @@ int main() {
         for (i = 0; arr[i] != '\0'; i++) {
             if (arr[i] == '0')
                 zero++;
-            else
+            if (arr[i] != '0' && zero != 0)
                 swap(i, i - zero);
         }
         printf("%s\n", arr);
