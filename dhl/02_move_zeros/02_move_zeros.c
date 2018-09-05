@@ -10,9 +10,9 @@ void swap(int a, int b) {
 
 int main() {
     int T, t;
-	freopen("input.txt", "r", stdin);
-	scanf("%d", &T);
-	for (t = 1; t <= T; t++) {
+    freopen("input.txt", "r", stdin);
+    scanf("%d", &T);
+    for (t = 1; t <= T; t++) {
         scanf("%s", arr);
         int zero = 0, i;
         for (i = 0; arr[i] != '\0'; i++) {
@@ -23,5 +23,5 @@ int main() {
         }
         printf("%s\n", arr);
     }
-	return 0;
+    return 0;
 }
