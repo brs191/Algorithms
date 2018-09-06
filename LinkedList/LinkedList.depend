@@ -1,7 +1,0 @@
-# depslib dependency file v1.0
-1527520607 source:/home/raja/myPrograms/Algorithms/LinkedList/main.c
-	<stdio.h>
-	<stdlib.h>
-
-1527517884 /home/raja/myPrograms/Algorithms/LinkedList/ll.h
-

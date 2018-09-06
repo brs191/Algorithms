@@ -1,7 +1,0 @@
-# depslib dependency file v1.0
-1528900428 source:/home/raja/myPrograms/Algorithms/fileSystem/main.c
-	<stdio.h>
-	<stdlib.h>
-	<stdbool.h>
-	<string.h>
-

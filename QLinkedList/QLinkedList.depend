@@ -1,6 +1,0 @@
-# depslib dependency file v1.0
-1528429856 source:c:\dropbox\github\algorithms-master\qlinkedlist\main.c
-	<stdio.h>
-	<stdlib.h>
-	<stdbool.h>
-
