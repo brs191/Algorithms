@@ -1,0 +1,3 @@
+Single Trie Data Structure implementation is same as Dictionary
+    Trie Operations:
+        Insert, DeleteWord, Search Word, Search Prefix Words, Search Prefix Count, DeleteTrie
